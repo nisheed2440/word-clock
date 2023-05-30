@@ -1,9 +1,12 @@
 import { describe, expect, test } from "vitest";
 import { WordClock } from "./word-clock-utils";
-import { DEFAULT_MATRIX_MAPPED_DATA } from "./constants";
+import { DEFAULT_MATRIX_MAPPED_DATA, DEFAULT_INPUT_MATRIX } from "./constants";
 
 describe("WordClock", () => {
-  const wordClock = new WordClock(DEFAULT_MATRIX_MAPPED_DATA);
+  const wordClock = new WordClock(
+    DEFAULT_INPUT_MATRIX,
+    DEFAULT_MATRIX_MAPPED_DATA
+  );
 
   test("should set the correct rounded hour and minutes", () => {
     expect(wordClock.ogHour).toBe(0);
@@ -35,13 +38,22 @@ describe("WordClock", () => {
     ).toEqual(["IT", "IS", "TWENTY", "MINUTES", "PAST", "11", "O'CLOCK"]);
     expect(
       wordClock.debugTime(wordClock.getTimePhrase("2021-01-01T23:25:00"))
-    ).toEqual(["IT", "IS", "TWENTYFIVE", "MINUTES", "PAST", "11", "O'CLOCK"]);
+    ).toEqual([
+      "IT",
+      "IS",
+      "TWENTY",
+      "FIVE",
+      "MINUTES",
+      "PAST",
+      "11",
+      "O'CLOCK",
+    ]);
     expect(
       wordClock.debugTime(wordClock.getTimePhrase("2021-01-01T23:30:00"))
     ).toEqual(["IT", "IS", "HALF", "PAST", "11"]);
     expect(
       wordClock.debugTime(wordClock.getTimePhrase("2021-01-01T23:35:00"))
-    ).toEqual(["IT", "IS", "TWENTYFIVE", "MINUTES", "TO", "0"]);
+    ).toEqual(["IT", "IS", "TWENTY", "FIVE", "MINUTES", "TO", "0"]);
     expect(
       wordClock.debugTime(wordClock.getTimePhrase("2021-01-01T23:40:00"))
     ).toEqual(["IT", "IS", "TWENTY", "MINUTES", "TO", "0"]);
@@ -54,5 +66,9 @@ describe("WordClock", () => {
     expect(
       wordClock.debugTime(wordClock.getTimePhrase("2021-01-01T10:13:00"))
     ).toEqual(["IT", "IS", "TEN", "MINUTES", "PAST", "10", "O'CLOCK"]);
+  });
+
+  test("should return a new grid with the items set to true", () => {
+    expect(wordClock.getTimePhraseGrid("2021-01-01T23:20:00")).toBeTruthy();
   });
 });

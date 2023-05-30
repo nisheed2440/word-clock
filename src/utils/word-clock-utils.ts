@@ -4,9 +4,14 @@ export class WordClock {
   /** hours data mapped from input data */
   private _hoursData: Record<string | number, number[]>;
   /** minutes data mapped from input data */
-  private _minutesData: Record<string | number, number[] | null>;
+  private _minutesData: Record<string | number, number[][]>;
   /** input data */
   private _data: Record<string | number, number[]>;
+  /** input matrix */
+  private _inputMatrix: {
+    active: boolean;
+    letter: string;
+  }[][];
   /** original hour from input date*/
   ogHour = 0;
   /** original minutes from input date*/
@@ -15,51 +20,65 @@ export class WordClock {
   roundedHour = 0;
   /** rounded minutes from input date*/
   roundedMinutes = 0;
-  
-  constructor(data: TMappedData) {
+
+  constructor(inputMatrix: string[][], data: TMappedData) {
     this._hoursData = {
       0: data[0],
       1: data[1],
       2: data[2],
       3: data[3],
       4: data[4],
-      5: data[5],
+      5: data.FIVE,
       6: data[6],
       7: data[7],
       8: data[8],
       9: data[9],
-      10: data[10],
+      10: data.TEN,
       11: data[11],
       12: data[12],
       13: data[1],
       14: data[2],
       15: data[3],
       16: data[4],
-      17: data[5],
+      17: data.FIVE,
       18: data[6],
       19: data[7],
       20: data[8],
       21: data[9],
-      22: data[10],
+      22: data.TEN,
       23: data[11],
     };
 
     this._minutesData = {
-      0: null,
-      5: data.FIVE,
-      10: data.TEN,
-      15: data.QUARTER,
-      20: data.TWENTY,
-      25: data.TWENTYFIVE,
-      30: data.HALF,
-      35: data.TWENTYFIVE,
-      40: data.TWENTY,
-      45: data.QUARTER,
-      50: data.TEN,
-      55: data.FIVE,
+      0: [],
+      5: [data[5]],
+      10: [data[10]],
+      15: [data.QUARTER],
+      20: [data.TWENTY],
+      25: [data.TWENTY, data[5]],
+      30: [data.HALF],
+      35: [data.TWENTY, data[5]],
+      40: [data.TWENTY],
+      45: [data.QUARTER],
+      50: [data[10]],
+      55: [data[5]],
     };
 
     this._data = data;
+    this._inputMatrix = inputMatrix.map((row) =>
+      row.map((col) => {
+        if (col === " ") {
+          return {
+            letter: this._generateRandomLetter(),
+            active: false,
+          };
+        }
+        return {
+          letter: col,
+          active: false,
+        };
+      })
+    );
   }
 
   private _isPostHalfHour() {
@@ -102,7 +121,7 @@ export class WordClock {
       suffix.push(this._data.PAST);
     }
 
-    return [this._minutesData[this.roundedMinutes], ...suffix].filter(
+    return [...this._minutesData[this.roundedMinutes], ...suffix].filter(
       Boolean
     ) as number[][];
   }
@@ -111,6 +130,7 @@ export class WordClock {
     // Handle midnight and more than half past 11
     if (
       this.roundedHour === 0 ||
+      this.roundedHour === 12 ||
       (this.roundedHour === 23 && this.ogMinutes >= 35)
     ) {
       return "";
@@ -123,6 +143,11 @@ export class WordClock {
 
     // Default
     return this._data["O'CLOCK"];
+  }
+
+  private _generateRandomLetter() {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    return letters[Math.floor(Math.random() * letters.length)];
   }
 
   /**
@@ -145,6 +170,29 @@ export class WordClock {
       this._getHourPhrase(),
       this._getOfTheClock(),
     ].filter(Boolean) as number[][];
+  }
+
+  /**
+   * Get the time phrase grid for a given timestamp
+   * @param timestamp The timestamp to evaluate
+   * @returns a new grid with the time phrase set to true
+   */
+  getTimePhraseGrid(timestamp: string | number | Date) {
+    const timePhrases = this.getTimePhrase(timestamp);
+    // create new grid with all false values
+    const newGrid = this._inputMatrix.map((row) =>
+      row.map((col) => ({
+        ...col,
+        active: false,
+      }))
+    );
+    // loop through timePhrases and set grid values to true
+    timePhrases.forEach((phrase) => {
+      for (let i = phrase[1]; i <= phrase[2]; i++) {
+        newGrid[phrase[0]][i].active = true;
+      }
+    });
+    return newGrid;
   }
 
   /**
