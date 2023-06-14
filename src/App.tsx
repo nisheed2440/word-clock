@@ -15,8 +15,8 @@ function App() {
   useEffect(() => {
     // Set interval
     const interval = setInterval(() => {
-      setMatrix(wordClock.getTimePhraseGrid("2021-01-01T12:35:00"));
-    }, 1000);
+      setMatrix(wordClock.getTimePhraseGrid(Date.now()));
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
   return (
